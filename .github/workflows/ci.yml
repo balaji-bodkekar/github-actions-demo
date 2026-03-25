@@ -56,41 +56,40 @@ jobs:
       - name: Run application
         run: java -jar *.jar
 
+     # Job 3: Build Docker image
+     docker:
+      needs: build
+      runs-on: ubuntu-latest
 
-  # Job 3: Build Docker image
-    docker:
-    needs: build
-    runs-on: ubuntu-latest
+      steps:
+       - uses: actions/checkout@v4
 
-    steps:
-      - uses: actions/checkout@v4
+       - name: Download artifact
+         uses: actions/download-artifact@v4
+         with:
+           name: app-jar
+           path: target
 
-      - name: Download artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: app-jar
-          path: target
-
-      - name: Build Docker image
-        run: docker build -t ${{ secrets.DOCKER_USERNAME }}/java-demo:${{ github.sha }} .
+       - name: Build Docker image
+         run: docker build -t ${{ secrets.DOCKER_USERNAME }}/java-demo:${{ github.sha }} .
 
       # --- TRIVY SCAN STEP ---
-      - name: Run Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@master
-        with:
-          image-ref: '${{ secrets.DOCKER_USERNAME }}/java-demo:${{ github.sha }}'
-          format: 'table'
-          exit-code: '1' # This stops the pipeline if CRITICAL issues are found
-          ignore-unfixed: true
-          vuln-type: 'os,library'
-          severity: 'CRITICAL,HIGH'
+       - name: Run Trivy vulnerability scanner
+         uses: aquasecurity/trivy-action@master
+         with:
+           image-ref: '${{ secrets.DOCKER_USERNAME }}/java-demo:${{ github.sha }}'
+           format: 'table'
+           exit-code: '1' # This stops the pipeline if CRITICAL issues are found
+           ignore-unfixed: true
+           vuln-type: 'os,library'
+           severity: 'CRITICAL,HIGH'
 
-      - name: Log in to Docker Hub
-        if: success() # Only log in and push if the scan passes
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
+       - name: Log in to Docker Hub
+         if: success() # Only log in and push if the scan passes
+         uses: docker/login-action@v3
+         with:
+           username: ${{ secrets.DOCKER_USERNAME }}
+           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Push Docker image
-        run: docker push ${{ secrets.DOCKER_USERNAME }}/java-demo:${{ github.sha }}
+       - name: Push Docker image
+         run: docker push ${{ secrets.DOCKER_USERNAME }}/java-demo:${{ github.sha }}
