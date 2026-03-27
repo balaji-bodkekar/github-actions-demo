@@ -1,11 +1,10 @@
-# Used a lightweight Alpine-based JRE image
-FROM eclipse-temurin:17-jre-alpine
+FROM eclipse-temurin:17-jdk-jammy
 
-# Created working directory inside container
+# Updated and upgrade system packages to patch known vulnerabilities
+RUN apt-get update && apt-get upgrade -y && rm -rf /var/lib/apt/lists/*
+
 WORKDIR /app
 
-# Coped JAR into container
 COPY target/*.jar app.jar
 
-# Command to run the app
 ENTRYPOINT ["java", "-jar", "/app/app.jar"]
