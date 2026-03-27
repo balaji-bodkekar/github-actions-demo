@@ -7,70 +7,70 @@ on:
     branches: [ dev ]
 
 jobs:
-
-  # Job 1: Build, test and package
+  # --- STAGE 1: COMPILATION & TESTING ---
+  # This job ensures the Java code is high quality and creates the executable JAR.
   build:
     runs-on: ubuntu-latest
-
     steps:
-      # Checkout source code
       - uses: actions/checkout@v4
 
-      # Install Java
       - name: Set up Java
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
-          cache: maven
+          cache: maven # Speeds up builds by remembering downloaded libraries
 
-      # Build project and run tests
       - name: Build and test
+        # Compiles code, runs Unit Tests, and creates the target/*.jar file
         run: mvn -B clean verify
 
-      # Upload generated JAR
       - name: Upload artifact
+        # Saves the JAR file so the next jobs (Run and Docker) can use it
         uses: actions/upload-artifact@v4
         with:
           name: app-jar
           path: target/*.jar
 
-
-  # Job 2: Run the application (smoke test)
+  # --- STAGE 2: SMOKE TEST ---
+  # This job does a quick "Health Check" to see if the JAR actually starts up.
   run-app:
     needs: build
     runs-on: ubuntu-latest
-
     steps:
-      # Download JAR from previous job
       - name: Download artifact
         uses: actions/download-artifact@v4
         with:
           name: app-jar
-
-      # Show downloaded files
-      - name: List files
-        run: ls
-
-      # Run the application
+      
       - name: Run application
-        run: java -jar *.jar
+        # Starts the app in the background, waits 10s, then shuts it down.
+        # If the app crashes on startup, this stage will fail.
+        run: java -jar *.jar & sleep 10 && kill $!
 
-     # Job 3: Build Docker image
+  # --- STAGE 3: CONTAINERIZATION & SECURITY ---
+  # This job packages the app into Docker and checks for vulnerabilities.
   docker:
-     needs: build
-     runs-on: ubuntu-latest
-
-     steps:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
       - uses: actions/checkout@v4
 
       - name: Download artifact
         uses: actions/download-artifact@v4
         with:
-           name: app-jar
-           path: target
-        # Setup Docker Buildx (Essential for Caching)
+          name: app-jar
+          path: target
+
+      - name: Extract Maven Version
+        id: project_version
+        # Reads the version (e.g. 0.0.1) from pom.xml to use as a Docker Tag
+        run: |
+          VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+
       - name: Set up Docker Buildx
+        # Enables modern Docker features like Build-Caching
         uses: docker/setup-buildx-action@v3
 
       - name: Log in to Docker Hub
@@ -79,26 +79,32 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-        # Build the image with Cache support
       - name: Build Docker image
+        # Builds the image using the extracted version. 
+        # Uses 'type=gha' to cache OS layers on GitHub to save time.
         uses: docker/build-push-action@v5
         with:
           context: .
-          load: true # Load it into local docker images so Trivy can scan it
-          tags: ${{ secrets.DOCKER_USERNAME }}/java-demo:${{ github.sha }}
+          load: true # Makes the image available locally for the Trivy scanner
+          tags: |
+            ${{ secrets.DOCKER_USERNAME }}/java-demo:${{ steps.project_version.outputs.VERSION }}
+            ${{ secrets.DOCKER_USERNAME }}/java-demo:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          
-      # --- TRIVY SCAN STEP ---
+
       - name: Run Trivy vulnerability scanner
+        # Scans the image for security holes. Fails if CRITICAL/HIGH issues are found.
         uses: aquasecurity/trivy-action@master
         with:
-           image-ref: '${{ secrets.DOCKER_USERNAME }}/java-demo:${{ github.sha }}'
-           format: 'table'
-           exit-code: '1' # This stops the pipeline if CRITICAL issues are found
-           ignore-unfixed: true
-           #vuln-type: 'os,library'
-           severity: 'CRITICAL,HIGH'
+          image-ref: '${{ secrets.DOCKER_USERNAME }}/java-demo:${{ steps.project_version.outputs.VERSION }}'
+          format: 'table'
+          exit-code: '1'
+          ignore-unfixed: true
+          severity: 'CRITICAL,HIGH'
 
       - name: Push Docker image
-        run: docker push ${{ secrets.DOCKER_USERNAME }}/java-demo:${{ github.sha }}
+        # Only runs if Trivy finds no major security issues.
+        # Uploads your specific version and the 'latest' tag to Docker Hub.
+        run: |
+          docker push ${{ secrets.DOCKER_USERNAME }}/java-demo:${{ steps.project_version.outputs.VERSION }}
+          docker push ${{ secrets.DOCKER_USERNAME }}/java-demo:latest
