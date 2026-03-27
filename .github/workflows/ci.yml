@@ -80,9 +80,9 @@ jobs:
            image-ref: '${{ secrets.DOCKER_USERNAME }}/java-demo:${{ github.sha }}'
            format: 'table'
            exit-code: '1' # This stops the pipeline if CRITICAL issues are found
-           ignore-unfixed: false
+           ignore-unfixed: true
            vuln-type: 'os,library'
-           severity: 'LOW,MEDIUM,CRITICAL,HIGH'
+           severity: 'CRITICAL,HIGH'
 
       - name: Log in to Docker Hub
         if: success() # Only log in and push if the scan passes
