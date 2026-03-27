@@ -1,11 +1,11 @@
-# Base image with Java 17
-FROM eclipse-temurin:17-jdk-jammy
+# Used a lightweight Alpine-based JRE image
+FROM eclipse-temurin:17-jre-alpine
 
-# Create working directory inside container
+# Created working directory inside container
 WORKDIR /app
 
-# Copy JAR into container
+# Coped JAR into container
 COPY target/*.jar app.jar
 
 # Command to run the app
-ENTRYPOINT ["java","-jar","/app/app.jar"]
+ENTRYPOINT ["java", "-jar", "/app/app.jar"]
