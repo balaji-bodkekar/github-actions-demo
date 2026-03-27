@@ -81,7 +81,7 @@ jobs:
            format: 'table'
            exit-code: '1' # This stops the pipeline if CRITICAL issues are found
            ignore-unfixed: true
-           vuln-type: 'os,library'
+           #vuln-type: 'os,library'
            severity: 'CRITICAL,HIGH'
 
       - name: Log in to Docker Hub
