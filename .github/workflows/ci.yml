@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: [ dev ]
 
+permissions:
+  contents: read
+  security-events: write
+
 jobs:
   # --- STAGE 1: COMPILATION & TESTING ---
   # This job ensures the Java code is high quality and creates the executable JAR.
