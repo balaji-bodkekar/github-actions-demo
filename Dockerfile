@@ -1,10 +1,14 @@
-FROM eclipse-temurin:17-jdk-jammy
+# Use Alpine-based JRE for the smallest possible security footprint
+FROM eclipse-temurin:17-jre-alpine
 
-# Updated and upgrade system packages to patch known vulnerabilities
-RUN apt-get update && apt-get upgrade -y && rm -rf /var/lib/apt/lists/*
+# Create a non-privileged user to run the app (Security Best Practice)
+RUN addgroup -S spring && adduser -S spring -G spring
+USER spring:spring
 
 WORKDIR /app
 
+# Copy the JAR from your build folder
 COPY target/*.jar app.jar
 
-ENTRYPOINT ["java", "-jar", "/app/app.jar"]
+# Run the application
+ENTRYPOINT ["java", "-jar", "app.jar"]
