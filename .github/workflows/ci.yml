@@ -42,11 +42,12 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: app-jar
+          path: app-jar
       
       - name: Run application
         # Starts the app in the background, waits 10s, then shuts it down.
         # If the app crashes on startup, this stage will fail.
-        run: java -jar *.jar & sleep 10 && kill $!
+        run: java -jar app-jar/*.jar & sleep 10 && kill $!
 
   # --- STAGE 3: CONTAINERIZATION & SECURITY ---
   # This job packages the app into Docker and checks for vulnerabilities.
