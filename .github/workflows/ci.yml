@@ -76,7 +76,7 @@ jobs:
           name: jacoco-report
           path: target/site/jacoco
 
-  # Smoke Test
+  # Smoke Test of app
   run-app:
     needs: build
     runs-on: ubuntu-latest
