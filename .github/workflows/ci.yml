@@ -213,6 +213,13 @@ jobs:
           ignore-unfixed: true
           exit-code: "1"
 
+      - name: Verify SARIF output
+        if: always()
+        run: |
+          pwd
+          ls -lah
+          find . -name "*.sarif"
+
       - name: Upload Trivy Results
         if: always()
         uses: github/codeql-action/upload-sarif@v4
