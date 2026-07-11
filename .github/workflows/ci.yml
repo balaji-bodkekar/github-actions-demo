@@ -197,9 +197,8 @@ jobs:
           context: .
           load: true
           tags: |
-            tags: |
-              828562155228.dkr.ecr.us-east-1.amazonaws.com/java-demo:${{ steps.image_metadata.outputs.IMAGE_TAG }}
-              828562155228.dkr.ecr.us-east-1.amazonaws.com/java-demo:latest
+            828562155228.dkr.ecr.us-east-1.amazonaws.com/java-demo:${{ steps.image_metadata.outputs.IMAGE_TAG }}
+            828562155228.dkr.ecr.us-east-1.amazonaws.com/java-demo:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
