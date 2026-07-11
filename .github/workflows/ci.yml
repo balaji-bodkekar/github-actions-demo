@@ -228,5 +228,5 @@ jobs:
 
       - name: Push Docker Image
         run: |
-          docker push 828562155228.dkr.ecr.us-east-1.amazonaws.com/java-demo:${{ steps.project_version.outputs.VERSION }}
+          docker push 828562155228.dkr.ecr.us-east-1.amazonaws.com/java-demo:${{ steps.image_metadata.outputs.IMAGE_TAG }}
           docker push 828562155228.dkr.ecr.us-east-1.amazonaws.com/java-demo:latest
