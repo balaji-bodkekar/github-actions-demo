@@ -31,6 +31,7 @@ jobs:
   # --- STAGE 1: COMPILATION & TESTING ---
   # This job ensures the Java code is high quality and creates the executable JAR.
   build:
+    needs: pre-commit
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
