@@ -101,7 +101,6 @@ jobs:
       - name: Run Gitleaks
         uses: gitleaks/gitleaks-action@v2
 
-
   # Build & Unit Tests
   build:
     runs-on: ubuntu-latest
