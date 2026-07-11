@@ -30,7 +30,7 @@ jobs:
 
       - name: Run Pre-Commit Hooks
         run: python -m pre_commit run --all-files
-        
+
   # --- STAGE 1: COMPILATION & TESTING ---
   # This job ensures the Java code is high quality and creates the executable JAR.
   build:
@@ -68,7 +68,7 @@ jobs:
         with:
           name: app-jar
           path: app-jar
-      
+
       - name: Run application
         # Starts the app in the background, waits 10s, then shuts it down.
         # If the app crashes on startup, this stage will fail.
