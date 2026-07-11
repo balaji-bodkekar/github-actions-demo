@@ -197,15 +197,16 @@ jobs:
           context: .
           load: true
           tags: |
-            828562155228.dkr.ecr.us-east-1.amazonaws.com/java-demo:${{ steps.project_version.outputs.VERSION }}
-            828562155228.dkr.ecr.us-east-1.amazonaws.com/java-demo:latest
+            tags: |
+              828562155228.dkr.ecr.us-east-1.amazonaws.com/java-demo:${{ steps.image_metadata.outputs.IMAGE_TAG }}
+              828562155228.dkr.ecr.us-east-1.amazonaws.com/java-demo:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
       - name: Scan Image with Trivy
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: 828562155228.dkr.ecr.us-east-1.amazonaws.com/java-demo:${{ steps.project_version.outputs.VERSION }}
+          image-ref: image-ref: 828562155228.dkr.ecr.us-east-1.amazonaws.com/java-demo:${{ steps.image_metadata.outputs.IMAGE_TAG }}
           format: sarif
           output: trivy-results.sarif
           severity: CRITICAL,HIGH
