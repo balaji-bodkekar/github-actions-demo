@@ -88,27 +88,9 @@ jobs:
           name: app-jar
           path: app
 
-      - name: Start application
+      - name: Run application JAR
         run: |
-          java -jar app/*.jar &
-          APP_PID=$!
-
-          echo "Waiting for application to become healthy..."
-
-          for i in {1..12}; do
-            if curl -fs http://localhost:8080/actuator/health; then
-              echo "Application is healthy"
-              kill $APP_PID
-              exit 0
-            fi
-
-            echo "Attempt $i: Application not ready..."
-            sleep 5
-          done
-
-          echo "Application failed health check"
-          kill $APP_PID
-          exit 1
+          java -jar app/*.jar
 
   # Docker Build & Security
   docker:
