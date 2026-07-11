@@ -10,6 +10,7 @@ on:
 permissions:
   contents: read
   security-events: write
+  id-token: write
 
 jobs:
   # --- STAGE 1: COMPILATION & TESTING ---
@@ -55,12 +56,13 @@ jobs:
         run: java -jar app-jar/*.jar --version || echo "App artifact is valid"
 
   # --- STAGE 3: CONTAINERIZATION & SECURITY ---
-  # This job packages the app into Docker and checks for vulnerabilities.
+  # This job packages the app into Docker, scans for vulnerabilities, and pushes to AWS ECR.
   docker:
     needs: build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
       - name: Download artifact
         uses: actions/download-artifact@v4
@@ -70,54 +72,57 @@ jobs:
 
       - name: Extract Maven Version
         id: project_version
-        # Reads the version (e.g. 0.0.1) from pom.xml to use as a Docker Tag
         run: |
           VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
           echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
 
       - name: Set up Docker Buildx
-        # Enables modern Docker features like Build-Caching
         uses: docker/setup-buildx-action@v3
 
-      - name: Log in to Docker Hub
-        uses: docker/login-action@v3
+      # 1. Configure AWS credentials using OIDC (No Keys Needed)
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
         with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
+          role-to-assume: arn:aws:iam::828562155228:role/github-actions-ecr-role
+          aws-region: us-east-1
 
+      # 2. Log in to Amazon ECR
+      - name: Log in to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      # 3. Build Docker image for AWS ECR
       - name: Build Docker image
-        # Builds the image using the extracted version. 
-        # Uses 'type=gha' to cache OS layers on GitHub to save time.
         uses: docker/build-push-action@v5
         with:
           context: .
           load: true # Makes the image available locally for the Trivy scanner
           tags: |
-            ${{ secrets.DOCKER_USERNAME }}/java-demo:${{ steps.project_version.outputs.VERSION }}
-            ${{ secrets.DOCKER_USERNAME }}/java-demo:latest
+            828562155228.dkr.ecr.us-east-1.amazonaws.com/java-demo:${{ steps.project_version.outputs.VERSION }}
+            828562155228.dkr.ecr.us-east-1.amazonaws.com/java-demo:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-        # Scans the image for security holes. Fails if CRITICAL/HIGH issues are found.
+      # 4. Run Trivy vulnerability scanner
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: '${{ secrets.DOCKER_USERNAME }}/java-demo:${{ steps.project_version.outputs.VERSION }}'
+          image-ref: '828562155228.dkr.ecr.us-east-1.amazonaws.com/java-demo:${{ steps.project_version.outputs.VERSION }}'
           format: 'sarif'
           output: 'trivy-results.sarif'
           exit-code: '1'
           ignore-unfixed: true
           severity: 'CRITICAL,HIGH'
 
+      # 5. Upload Trivy scan results to GitHub Security tab
       - name: Upload Trivy scan results to GitHub Security tab
         uses: github/codeql-action/upload-sarif@v4
         if: always()
         with:
           sarif_file: 'trivy-results.sarif'
 
-      - name: Push Docker image
-        # Only runs if Trivy finds no major security issues.
-        # Uploads your specific version and the 'latest' tag to Docker Hub.
+      # 6. Push Docker image to Amazon ECR (Only if scanner passes)
+      - name: Push Docker image to Amazon ECR
         run: |
-          docker push ${{ secrets.DOCKER_USERNAME }}/java-demo:${{ steps.project_version.outputs.VERSION }}
-          docker push ${{ secrets.DOCKER_USERNAME }}/java-demo:latest
+          docker push 828562155228.dkr.ecr.us-east-1.amazonaws.com/java-demo:${{ steps.project_version.outputs.VERSION }}
+          docker push 828562155228.dkr.ecr.us-east-1.amazonaws.com/java-demo:latest
