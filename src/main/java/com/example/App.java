@@ -1,8 +1,6 @@
 package com.example;
 
-/**
- * Application entry point for the GitHub Actions demo.
- */
+/** Application entry point for the GitHub Actions demo. */
 public final class App {
 
   private App() {
