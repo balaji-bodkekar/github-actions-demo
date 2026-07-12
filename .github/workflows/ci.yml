@@ -76,6 +76,15 @@ jobs:
           java-version: "17"
           cache: maven
 
+      - name: Spotless
+        run: mvn spotless:check
+      - name: Checkstyle
+        run: mvn checkstyle:check
+      - name: PMD
+        run: mvn pmd:check
+      - name: SpotBugs
+        run: mvn spotbugs:check
+
       - name: Build Project
         run: mvn -B clean compile
 
