@@ -113,7 +113,10 @@ jobs:
           cache: maven
 
       - name: Build and Test
-        run: mvn -B clean compile
+        run: |
+          mvn -B clean compile
+          mvn -B test
+          mvn -B package -DskipTests
 
       - name: Upload JAR
         uses: actions/upload-artifact@v4
