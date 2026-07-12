@@ -37,7 +37,7 @@ jobs:
       - name: Run Pre-Commit Hooks
         run: pre-commit run --all-files
 
-  dependancy-review:
+  dependency-review:
     name: Dependency Review
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
@@ -114,10 +114,7 @@ jobs:
 
       - name: Build and Test
         run: |
-          mvn -B clean compile
-          mvn -B test
-          mvn -B package -DskipTests
-
+          mvn -B clean package
       - name: Upload JAR
         uses: actions/upload-artifact@v4
         with:
@@ -162,7 +159,7 @@ jobs:
     permissions:
       contents: read
       id-token: write
-      security-events: read
+      security-events: write
 
     steps:
       - name: Checkout repository
