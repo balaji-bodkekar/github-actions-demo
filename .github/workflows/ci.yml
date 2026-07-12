@@ -9,9 +9,6 @@ on:
 
 permissions:
   contents: read
-  security-events: write
-  id-token: write
-  pull-requests: read
 
 # Cancel previous runs on the same branch
 concurrency:
@@ -116,7 +113,10 @@ jobs:
           cache: maven
 
       - name: Build and Test
-        run: mvn -B clean verify
+        run: |
+          mvn -B clean compile
+          mvn -B test
+          mvn -B package -DskipTests
 
       - name: Upload JAR
         uses: actions/upload-artifact@v4
@@ -158,6 +158,10 @@ jobs:
   docker:
     needs: build
     runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      id-token: write
 
     steps:
       - name: Checkout repository
