@@ -80,6 +80,9 @@ jobs:
         run: |
           mvn -B spotless:check
           mvn spotless:apply
+      - name: Checkstyle
+      
+        run: mvn checkstyle:check
 
       - name: Build Project
         run: mvn -B clean compile
