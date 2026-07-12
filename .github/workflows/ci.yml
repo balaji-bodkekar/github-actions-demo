@@ -162,6 +162,7 @@ jobs:
     permissions:
       contents: read
       id-token: write
+      security-events: read
 
     steps:
       - name: Checkout repository
