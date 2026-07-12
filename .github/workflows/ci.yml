@@ -93,7 +93,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
         with:
-          fetch-depth: 1
+          fetch-depth: 0
       - name: Run Gitleaks
         uses: gitleaks/gitleaks-action@v3
         env:
@@ -200,7 +200,6 @@ jobs:
           tags: |
             828562155228.dkr.ecr.us-east-1.amazonaws.com/java-demo:${{ steps.image_metadata.outputs.IMAGE_TAG }}
             828562155228.dkr.ecr.us-east-1.amazonaws.com/java-demo:latest
-            
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
