@@ -52,7 +52,7 @@ jobs:
       - name: Dependency Review
         uses: actions/dependency-review-action@v4
 
-  codeql:
+  Quality:
     name: Code Analysis
     runs-on: ubuntu-latest
 
@@ -82,13 +82,13 @@ jobs:
           mvn spotless:apply
 
       - name: Checkstyle
-        run: mvn checkstyle:check
+        run: mvn -B checkstyle:check
 
       - name: PMD
         run: mvn pmd:check
 
       - name: SpotBugs
-        run: mvn spotbugs:check
+        run: mvn -B spotbugs:check
 
       - name: Build Project
         run: mvn -B clean compile
