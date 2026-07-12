@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
 
   push:
-    branches: 
+    branches:
       - dev
     paths-ignore:
       - "README.md"
@@ -12,7 +12,7 @@ on:
       - "docs/**"
 
   pull_request:
-    branches: 
+    branches:
       - dev
     paths-ignore:
       - "README.md"
