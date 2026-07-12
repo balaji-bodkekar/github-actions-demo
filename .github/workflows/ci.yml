@@ -83,7 +83,7 @@ jobs:
 
       - name: Checkstyle
         run: mvn checkstyle:check
-      
+
       - name: PMD
         run: mvn pmd:check
 
