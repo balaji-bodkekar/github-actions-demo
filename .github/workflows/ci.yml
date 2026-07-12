@@ -114,9 +114,7 @@ jobs:
 
       - name: Build and Test
         run: |
-          mvn -B clean compile
-          mvn -B test
-          mvn -B package -DskipTests
+          mvn -B clean package
 
       - name: Upload JAR
         uses: actions/upload-artifact@v4
@@ -162,6 +160,7 @@ jobs:
     permissions:
       contents: read
       id-token: write
+      security-events: write
 
     steps:
       - name: Checkout repository
