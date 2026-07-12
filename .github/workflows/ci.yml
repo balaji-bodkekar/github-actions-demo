@@ -78,7 +78,7 @@ jobs:
 
       - name: Spotless
         run: |
-          mvn spotless:check
+          mvn -B spotless:check
           mvn spotless:apply
 
       - name: Build Project
